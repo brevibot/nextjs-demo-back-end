@@ -1,3 +1,5 @@
+// src/main/java/com/example/dashboardapi/entity/Build.java
+
 package com.example.dashboardapi.entity;
 
 import jakarta.persistence.*;
@@ -33,6 +35,9 @@ public class Build {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "build_id")
     private List<Change> changes = new ArrayList<>();
+
+    @OneToOne(mappedBy = "build", cascade = CascadeType.ALL)
+    private ApprovalRequest approvalRequest;
 
     public Build(int buildNumber, int major, int minor, int patch, String status, LocalDateTime date, String branch, boolean isRelease) {
         this.buildNumber = buildNumber;

@@ -86,6 +86,28 @@ public class DataLoader implements CommandLineRunner {
             new Build(146, 4, 1, 0, "SUCCESS", LocalDateTime.parse("2025-08-03T10:00:00"), "release/v4.1", true)
         );
 
+        newBuilds.get(0).getChanges().add(new Change("a1b2c3d", "Jane Doe", "feat: Add user authentication endpoint"));
+        newBuilds.get(1).getChanges().add(new Change("e4f5g6h", "John Smith", "fix: Correct calculation in payment module"));
+        newBuilds.get(2).getChanges().add(new Change("i7j8k9l", "Jane Doe", "refactor: Simplify database query logic"));
+        newBuilds.get(3).getChanges().add(new Change("m1n2o3p", "Jane Doe", "chore: Update dependencies"));
+        newBuilds.get(4).getChanges().add(new Change("q4r5s6t", "John Smith", "feat: Implement new reporting dashboard"));
+        newBuilds.get(5).getChanges().add(new Change("a1b2c3d", "Jane Doe", "feat: Add user authentication endpoint"));
+        newBuilds.get(6).getChanges().add(new Change("e4f5g6h", "John Smith", "fix: Correct calculation in payment module"));
+        newBuilds.get(7).getChanges().add(new Change("i7j8k9l", "Jane Doe", "refactor: Simplify database query logic"));
+        newBuilds.get(8).getChanges().add(new Change("m1n2o3p", "Jane Doe", "chore: Update dependencies"));
+        newBuilds.get(9).getChanges().add(new Change("q4r5s6t", "John Smith", "feat: Implement new reporting dashboard"));
+        newBuilds.get(10).getChanges().add(new Change("a1b2c3d", "Jane Doe", "feat: Add user authentication endpoint"));
+        newBuilds.get(11).getChanges().add(new Change("e4f5g6h", "John Smith", "fix: Correct calculation in payment module"));
+        newBuilds.get(12).getChanges().add(new Change("i7j8k9l", "Jane Doe", "refactor: Simplify database query logic"));
+        newBuilds.get(13).getChanges().add(new Change("m1n2o3p", "Jane Doe", "chore: Update dependencies"));
+        newBuilds.get(14).getChanges().add(new Change("q4r5s6t", "John Smith", "feat: Implement new reporting dashboard"));
+        newBuilds.get(15).getChanges().add(new Change("a1b2c3d", "Jane Doe", "feat: Add user authentication endpoint"));
+        newBuilds.get(16).getChanges().add(new Change("e4f5g6h", "John Smith", "fix: Correct calculation in payment module"));
+        newBuilds.get(17).getChanges().add(new Change("i7j8k9l", "Jane Doe", "refactor: Simplify database query logic"));
+        newBuilds.get(18).getChanges().add(new Change("m1n2o3p", "Jane Doe", "chore: Update dependencies"));
+        newBuilds.get(19).getChanges().add(new Change("q4r5s6t", "John Smith", "feat: Implement new reporting dashboard"));
+
+
         newBuilds.forEach(build -> build.setSonatypeNexusLink("http://localhost:8081/repository/maven-releases/com/example/dashboard-api/" + build.getMajorVersion() + "." + build.getMinorVersion() + "." + build.getPatchVersion() + "/"));
 
         List<Build> allBuilds = new java.util.ArrayList<>();
