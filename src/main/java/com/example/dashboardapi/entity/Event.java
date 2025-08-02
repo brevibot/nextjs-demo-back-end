@@ -4,12 +4,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table; // Import the Table annotation
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.ZonedDateTime;
 
 @Entity
+@Table(name = "app_event") // Explicitly name the table to avoid SQL keyword conflict
 @Data
 @NoArgsConstructor
 public class Event {
