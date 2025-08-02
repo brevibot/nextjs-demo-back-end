@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-// Global CORS configuration to allow requests from the Next.js app.
 @Configuration
 public class WebConfig {
     @Bean
@@ -13,9 +12,10 @@ public class WebConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**") // Allow all paths
-                        .allowedOrigins("http://localhost:3000") // Allow your frontend URL
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                // This more permissive configuration ensures all requests from the dev server are accepted.
+                registry.addMapping("/**")
+                        .allowedOrigins("http://localhost:3000")
+                        .allowedMethods("*") // Allow all HTTP methods
                         .allowedHeaders("*")
                         .allowCredentials(true);
             }
