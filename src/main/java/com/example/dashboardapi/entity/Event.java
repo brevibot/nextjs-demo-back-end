@@ -4,14 +4,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table; // Import the Table annotation
+import jakarta.persistence.Column; // Import the Column annotation
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.ZonedDateTime;
 
 @Entity
-@Table(name = "app_event") // Explicitly name the table to avoid SQL keyword conflict
 @Data
 @NoArgsConstructor
 public class Event {
@@ -20,8 +19,13 @@ public class Event {
     private Long id;
 
     private String title;
+
+    @Column(name = "start_date") // Rename the column to avoid SQL keyword conflict
     private ZonedDateTime start;
+
+    @Column(name = "end_date") // Rename the column to avoid SQL keyword conflict
     private ZonedDateTime end;
+    
     private boolean allDay;
     private String color;
 

@@ -20,7 +20,10 @@ public class Build {
     private int minorVersion;
     private int patchVersion;
     private String buildStatus;
+
+    @Column(name = "build_date") // *** FIX: Rename column to avoid SQL keyword conflict ***
     private LocalDateTime date;
+    
     private String installLink;
     private String githubActionLink;
     private String branch;
