@@ -2,6 +2,7 @@ package com.example.dashboardapi.service;
 
 import com.example.dashboardapi.entity.Event;
 import com.example.dashboardapi.repository.EventRepository;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -9,6 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Component
+@Profile("!local") // Only activate this component when the profile is NOT 'local'
 public class ScheduledTasks {
 
     private final EventRepository eventRepository;
