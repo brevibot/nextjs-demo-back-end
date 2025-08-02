@@ -1,3 +1,4 @@
+// src/main/java/com/example/dashboardapi/config/RestConfig.java
 package com.example.dashboardapi.config;
 
 import com.example.dashboardapi.entity.Build;
@@ -13,5 +14,12 @@ public class RestConfig implements RepositoryRestConfigurer {
     public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config, CorsRegistry cors) {
         config.exposeIdsFor(Build.class);
         config.exposeIdsFor(Event.class);
+
+        // Add CORS mapping for Spring Data REST endpoints
+        cors.addMapping("/**")
+            .allowedOrigins("http://localhost:3000")
+            .allowedMethods("*")
+            .allowedHeaders("*")
+            .allowCredentials(true);
     }
 }
