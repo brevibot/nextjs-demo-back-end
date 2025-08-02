@@ -21,16 +21,17 @@ public class Build {
     private int patchVersion;
     private String buildStatus;
 
-    @Column(name = "build_date") // *** FIX: Rename column to avoid SQL keyword conflict ***
+    @Column(name = "build_date")
     private LocalDateTime date;
     
     private String installLink;
     private String githubActionLink;
+    private String sonatypeNexusLink;
     private String branch;
     private boolean isRelease;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "build_id") // Creates a foreign key in the 'change' table
+    @JoinColumn(name = "build_id")
     private List<Change> changes = new ArrayList<>();
 
     public Build(int buildNumber, int major, int minor, int patch, String status, LocalDateTime date, String branch, boolean isRelease) {
