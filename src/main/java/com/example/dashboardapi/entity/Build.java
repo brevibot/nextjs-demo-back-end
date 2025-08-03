@@ -32,9 +32,9 @@ public class Build {
     private String sonatypeNexusLink;
     private String branch;
     private boolean isRelease;
-    private boolean approved = false; // Default to not approved
+    private boolean approved = false;
 
-    // Change FetchType to EAGER to ensure changes are always loaded
+    // Add FetchType.EAGER to ensure changes are loaded with the build
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "build_id")
     private List<Change> changes = new ArrayList<>();
