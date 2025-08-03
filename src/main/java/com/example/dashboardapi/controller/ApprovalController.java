@@ -2,6 +2,7 @@ package com.example.dashboardapi.controller;
 
 import com.example.dashboardapi.entity.*;
 import com.example.dashboardapi.repository.*;
+import lombok.Data;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,13 +23,24 @@ public class ApprovalController {
     private final TeamLeadChangeRepository teamLeadChangeRepository;
     private final QaApprovalRepository qaApprovalRepository;
     private final ManagerApprovalRepository managerApprovalRepository;
+    private final DeployerApprovalRepository deployerApprovalRepository;
+    private final TeamLeadApprovalRepository teamLeadApprovalRepository;
 
-    public ApprovalController(ApprovalRequestRepository approvalRequestRepository, BuildRepository buildRepository, TeamLeadChangeRepository teamLeadChangeRepository, QaApprovalRepository qaApprovalRepository, ManagerApprovalRepository managerApprovalRepository) {
+    // Helper class for the Team Lead submission
+    @Data
+    static class TeamLeadSubmissionRequest {
+        private String approvedBy;
+        private List<TeamLeadChange> changes;
+    }
+
+    public ApprovalController(ApprovalRequestRepository approvalRequestRepository, BuildRepository buildRepository, TeamLeadChangeRepository teamLeadChangeRepository, QaApprovalRepository qaApprovalRepository, ManagerApprovalRepository managerApprovalRepository, DeployerApprovalRepository deployerApprovalRepository, TeamLeadApprovalRepository teamLeadApprovalRepository) {
         this.approvalRequestRepository = approvalRequestRepository;
         this.buildRepository = buildRepository;
         this.teamLeadChangeRepository = teamLeadChangeRepository;
         this.qaApprovalRepository = qaApprovalRepository;
         this.managerApprovalRepository = managerApprovalRepository;
+        this.deployerApprovalRepository = deployerApprovalRepository;
+        this.teamLeadApprovalRepository = teamLeadApprovalRepository;
     }
 
     @PostMapping("/request/{buildId}")
@@ -38,13 +50,10 @@ public class ApprovalController {
             if (build == null) {
                 return ResponseEntity.notFound().build();
             }
-
             ApprovalRequest approvalRequest = new ApprovalRequest();
             approvalRequest.setBuild(build);
-            // 1. Set initial status to PENDING_DEPLOYER
             approvalRequest.setStatus("PENDING_DEPLOYER");
             approvalRequestRepository.saveAndFlush(approvalRequest);
-
             return ResponseEntity.ok(approvalRequest);
         } catch (DataIntegrityViolationException e) {
             Optional<ApprovalRequest> existingRequest = approvalRequestRepository.findByBuildId(buildId);
@@ -57,22 +66,27 @@ public class ApprovalController {
         }
     }
 
-    // 2. Add new endpoint for Deployer approval
     @PostMapping("/deployer/{approvalRequestId}")
     @Transactional
-    public ResponseEntity<?> submitDeployerApproval(@PathVariable Long approvalRequestId) {
+    public ResponseEntity<?> submitDeployerApproval(@PathVariable Long approvalRequestId, @RequestBody DeployerApproval deployerApproval) {
         ApprovalRequest approvalRequest = approvalRequestRepository.findById(approvalRequestId).orElse(null);
         if (approvalRequest == null) {
             return ResponseEntity.notFound().build();
         }
-
-        // Optional: Check if the request is in the correct state
         if (!"PENDING_DEPLOYER".equals(approvalRequest.getStatus())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", "Request is not awaiting deployer approval."));
         }
 
-        approvalRequest.setStatus("PENDING_TEAM_LEAD");
+        deployerApproval.setApprovalRequest(approvalRequest);
+        deployerApproval.setApprovalDate(LocalDateTime.now());
+        deployerApprovalRepository.save(deployerApproval);
+
+        if (deployerApproval.isApproved()) {
+            approvalRequest.setStatus("PENDING_TEAM_LEAD");
+        } else {
+            approvalRequest.setStatus("CANCELED");
+        }
         approvalRequestRepository.save(approvalRequest);
 
         return ResponseEntity.ok(approvalRequest);
@@ -80,17 +94,27 @@ public class ApprovalController {
 
     @PostMapping("/team-lead/{approvalRequestId}")
     @Transactional
-    public ResponseEntity<?> submitTeamLeadChanges(@PathVariable Long approvalRequestId, @RequestBody List<TeamLeadChange> changes) {
+    public ResponseEntity<?> submitTeamLeadChanges(@PathVariable Long approvalRequestId, @RequestBody TeamLeadSubmissionRequest request) {
         ApprovalRequest approvalRequest = approvalRequestRepository.findById(approvalRequestId).orElse(null);
         if (approvalRequest == null) {
             return ResponseEntity.notFound().build();
         }
-
-        for (TeamLeadChange change : changes) {
+        
+        // Save each change
+        for (TeamLeadChange change : request.getChanges()) {
             change.setApprovalRequest(approvalRequest);
+            change.setSubmittedBy(request.getApprovedBy());
             teamLeadChangeRepository.save(change);
         }
 
+        // Create the approval record
+        TeamLeadApproval teamLeadApproval = new TeamLeadApproval();
+        teamLeadApproval.setApprovedBy(request.getApprovedBy());
+        teamLeadApproval.setApproved(true);
+        teamLeadApproval.setApprovalDate(LocalDateTime.now());
+        teamLeadApproval.setApprovalRequest(approvalRequest);
+        teamLeadApprovalRepository.save(teamLeadApproval);
+        
         approvalRequest.setStatus("PENDING_QA");
         approvalRequestRepository.save(approvalRequest);
 
@@ -104,16 +128,13 @@ public class ApprovalController {
         if (approvalRequest == null) {
             return ResponseEntity.notFound().build();
         }
-
         qaApproval.setApprovalRequest(approvalRequest);
         qaApproval.setApprovalDate(LocalDateTime.now());
         qaApprovalRepository.save(qaApproval);
-
         if (qaApproval.isApproved()) {
             approvalRequest.setStatus("PENDING_MANAGER");
             approvalRequestRepository.save(approvalRequest);
         }
-
         return ResponseEntity.ok(approvalRequest);
     }
 
@@ -124,23 +145,18 @@ public class ApprovalController {
         if (approvalRequest == null) {
             return ResponseEntity.notFound().build();
         }
-
         managerApproval.setApprovalRequest(approvalRequest);
         managerApproval.setApprovalDate(LocalDateTime.now());
         managerApprovalRepository.save(managerApproval);
-
         if (managerApproval.isApproved()) {
             approvalRequest.setStatus("APPROVED");
-
             Build build = approvalRequest.getBuild();
             if (build != null) {
                 build.setApproved(true);
                 buildRepository.save(build);
             }
-
             approvalRequestRepository.save(approvalRequest);
         }
-
         return ResponseEntity.ok(approvalRequest);
     }
 }

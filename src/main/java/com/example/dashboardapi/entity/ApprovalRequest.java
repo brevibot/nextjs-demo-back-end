@@ -20,7 +20,13 @@ public class ApprovalRequest {
     private Build build;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "approvalRequest")
+    private List<DeployerApproval> deployerApprovals;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "approvalRequest")
     private List<TeamLeadChange> teamLeadChanges;
+    
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "approvalRequest")
+    private List<TeamLeadApproval> teamLeadApprovals;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "approvalRequest")
     private List<QaApproval> qaApprovals;
@@ -28,5 +34,5 @@ public class ApprovalRequest {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "approvalRequest")
     private List<ManagerApproval> managerApprovals;
 
-    private String status; // e.g., PENDING_TEAM_LEAD, PENDING_QA, PENDING_MANAGER, APPROVED
+    private String status; // e.g., PENDING_DEPLOYER, PENDING_TEAM_LEAD, PENDING_QA, PENDING_MANAGER, APPROVED
 }

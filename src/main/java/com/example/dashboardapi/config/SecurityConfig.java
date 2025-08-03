@@ -23,10 +23,10 @@ public class SecurityConfig {
             
             // 3. Configure authorization rules
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/approvals/deployer/**").hasRole("DEPLOYER")
-                .requestMatchers("/api/approvals/team-lead/**").hasRole("TEAM_LEAD")
-                .requestMatchers("/api/approvals/qa/**").hasRole("QA")
-                .requestMatchers("/api/approvals/manager/**").hasRole("MANAGER")
+                // .requestMatchers("/api/approvals/deployer/**").hasRole("DEPLOYER")
+                // .requestMatchers("/api/approvals/team-lead/**").hasRole("TEAM_LEAD")
+                // .requestMatchers("/api/approvals/qa/**").hasRole("QA")
+                // .requestMatchers("/api/approvals/manager/**").hasRole("MANAGER")
                 .anyRequest().permitAll()
             )
             .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
