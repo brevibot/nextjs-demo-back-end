@@ -133,8 +133,10 @@ public class ApprovalController {
         qaApprovalRepository.save(qaApproval);
         if (qaApproval.isApproved()) {
             approvalRequest.setStatus("PENDING_MANAGER");
-            approvalRequestRepository.save(approvalRequest);
+        } else {
+            approvalRequest.setStatus("CANCELED");
         }
+        approvalRequestRepository.save(approvalRequest);
         return ResponseEntity.ok(approvalRequest);
     }
 
@@ -155,8 +157,39 @@ public class ApprovalController {
                 build.setApproved(true);
                 buildRepository.save(build);
             }
-            approvalRequestRepository.save(approvalRequest);
+        } else {
+            approvalRequest.setStatus("CANCELED");
         }
+        approvalRequestRepository.save(approvalRequest);
         return ResponseEntity.ok(approvalRequest);
+    }
+
+    @PostMapping("/reset/{approvalRequestId}")
+    @Transactional
+    public ResponseEntity<?> resetApproval(@PathVariable Long approvalRequestId) {
+        ApprovalRequest approvalRequest = approvalRequestRepository.findById(approvalRequestId).orElse(null);
+        if (approvalRequest == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (!"CANCELED".equals(approvalRequest.getStatus())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Only canceled requests can be reset."));
+        }
+
+        // Clear previous approval/change records to start fresh
+        approvalRequest.getDeployerApprovals().clear();
+        approvalRequest.getTeamLeadApprovals().clear();
+        approvalRequest.getTeamLeadChanges().clear();
+        approvalRequest.getQaApprovals().clear();
+        approvalRequest.getManagerApprovals().clear();
+
+        // Reset the status
+        approvalRequest.setStatus("PENDING_DEPLOYER");
+
+        // Save the updated request
+        ApprovalRequest updatedRequest = approvalRequestRepository.save(approvalRequest);
+
+        return ResponseEntity.ok(updatedRequest);
     }
 }

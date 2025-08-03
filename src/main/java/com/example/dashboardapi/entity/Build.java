@@ -34,7 +34,8 @@ public class Build {
     private boolean isRelease;
     private boolean approved = false; // Default to not approved
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    // Change FetchType to EAGER to ensure changes are always loaded
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "build_id")
     private List<Change> changes = new ArrayList<>();
 

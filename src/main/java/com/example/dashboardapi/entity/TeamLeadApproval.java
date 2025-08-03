@@ -1,5 +1,6 @@
 package com.example.dashboardapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ public class TeamLeadApproval {
 
     @ManyToOne
     @JoinColumn(name = "approval_request_id")
+    @JsonBackReference("approvalRequest-teamLeadApprovals")
     private ApprovalRequest approvalRequest;
 
     private String approvedBy; // Team Lead's name or ID
