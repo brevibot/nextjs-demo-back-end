@@ -2,26 +2,27 @@ package com.example.dashboardapi.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 public class WebConfig {
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                // The Okta domain is extracted from your metadata file
-                String oktaDomain = "https://dev-77801819.okta.com";
 
-                // This global configuration applies to all endpoints
-                registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000", oktaDomain)
-                        .allowedMethods("*") // Allows GET, POST, PUT, DELETE, etc.
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
-            }
-        };
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        String oktaDomain = "https://dev-77801819.okta.com";
+        
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", oktaDomain));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
