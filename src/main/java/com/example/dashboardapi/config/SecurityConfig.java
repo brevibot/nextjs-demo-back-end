@@ -6,6 +6,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import static org.springframework.security.config.Customizer.withDefaults;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 
 @Configuration
 @EnableWebSecurity
@@ -22,11 +23,13 @@ public class SecurityConfig {
             
             // 3. Configure authorization rules
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/approvals/deployer/**").hasRole("DEPLOYER")
                 .requestMatchers("/api/approvals/team-lead/**").hasRole("TEAM_LEAD")
                 .requestMatchers("/api/approvals/qa/**").hasRole("QA")
                 .requestMatchers("/api/approvals/manager/**").hasRole("MANAGER")
                 .anyRequest().permitAll()
-            );
+            )
+            .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
 
         return http.build();
     }
