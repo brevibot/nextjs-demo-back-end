@@ -1,8 +1,12 @@
+// src/main/java/com/example/dashboardapi/config/SecurityConfig.java
+
 package com.example.dashboardapi.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
@@ -12,11 +16,9 @@ import org.springframework.security.saml2.provider.service.web.DefaultRelyingPar
 import org.springframework.security.saml2.provider.service.web.Saml2MetadataFilter;
 import org.springframework.security.saml2.provider.service.web.authentication.Saml2WebSsoAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -30,6 +32,9 @@ public class SecurityConfig {
         this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
     }
 
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         DefaultRelyingPartyRegistrationResolver relyingPartyRegistrationResolver =
@@ -39,9 +44,10 @@ public class SecurityConfig {
                 new OpenSamlMetadataResolver());
 
         http
-            .cors(cors -> cors.disable())
+            // .cors(cors -> cors.disable())
+            .cors(withDefaults())
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/login/saml2/sso/okta")
+                .ignoringRequestMatchers("/api/**", "/login/saml2/sso/okta")
             )
             .addFilterBefore(filter, Saml2WebSsoAuthenticationFilter.class)
             .authorizeHttpRequests(authorize -> authorize
@@ -49,9 +55,19 @@ public class SecurityConfig {
                 .requestMatchers("/login/**", "/error").permitAll()
                 .anyRequest().authenticated()
             )
-            .saml2Login(withDefaults())
+            // Update the saml2Login configuration
+            .saml2Login(saml2 -> saml2
+                .defaultSuccessUrl(frontendUrl, true)
+            )
             .saml2Logout(withDefaults())
-            .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
+            .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+            .exceptionHandling(e -> e
+                .defaultAuthenticationEntryPointFor(
+                    new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                    new AntPathRequestMatcher("/api/**")
+                )
+            );
+
 
         return http.build();
     }
