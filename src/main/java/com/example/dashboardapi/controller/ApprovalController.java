@@ -1,3 +1,5 @@
+// src/main/java/com/example/dashboardapi/controller/ApprovalController.java
+
 package com.example.dashboardapi.controller;
 
 import com.example.dashboardapi.entity.*;
@@ -96,6 +98,14 @@ public class ApprovalController {
 
         if (managerApproval.isApproved()) {
             approvalRequest.setStatus("APPROVED");
+            
+            // Get the associated build and set it to approved
+            Build build = approvalRequest.getBuild();
+            if (build != null) {
+                build.setApproved(true);
+                buildRepository.save(build);
+            }
+            
             approvalRequestRepository.save(approvalRequest);
         }
 

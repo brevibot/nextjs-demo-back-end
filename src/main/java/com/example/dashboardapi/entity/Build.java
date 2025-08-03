@@ -31,6 +31,7 @@ public class Build {
     private String sonatypeNexusLink;
     private String branch;
     private boolean isRelease;
+    private boolean approved = false; // Default to not approved
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "build_id")
