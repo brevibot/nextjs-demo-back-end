@@ -11,7 +11,6 @@ import org.springframework.security.saml2.provider.service.web.DefaultRelyingPar
 import org.springframework.security.saml2.provider.service.web.Saml2MetadataFilter;
 import org.springframework.security.saml2.provider.service.web.authentication.Saml2WebSsoAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -39,8 +38,10 @@ public class SecurityConfig {
                 new OpenSamlMetadataResolver());
 
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(withDefaults()) // This will now use the bean defined below
+            .cors(cors -> cors.disable())
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/login/saml2/sso/okta")
+            )
             .addFilterBefore(filter, Saml2WebSsoAuthenticationFilter.class)
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/login/**", "/error").permitAll()
