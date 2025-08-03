@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.data.rest.core.annotation.RestResource;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RepositoryRestResource(collectionResourceRel = "builds", path = "builds")
@@ -17,4 +18,7 @@ public interface BuildRepository extends JpaRepository<Build, Long> {
     // Expose the findByBranch method under the /api/builds/search/findByBranch endpoint
     @RestResource(path = "findByBranch", rel = "findByBranch")
     Page<Build> findByBranch(@Param("branch") String branch, Pageable pageable);
+
+    // New method to find the last successful release build before a certain date
+    Optional<Build> findTopByIsReleaseTrueAndDateBeforeOrderByDateDesc(LocalDateTime date);
 }
