@@ -34,25 +34,22 @@ public class ApprovalController {
     @PostMapping("/request/{buildId}")
     @Transactional
     public ResponseEntity<?> requestApproval(@PathVariable Long buildId) {
+        // Check if an ApprovalRequest already exists for this build
+        Optional<ApprovalRequest> existingRequest = approvalRequestRepository.findByBuildId(buildId);
+        if (existingRequest.isPresent()) {
+            // If it exists, return it instead of creating a new one or erroring
+            return ResponseEntity.ok(existingRequest.get());
+        }
+
         Build build = buildRepository.findById(buildId).orElse(null);
         if (build == null) {
             return ResponseEntity.notFound().build();
-        }
-
-        // Check if an ApprovalRequest already exists for this build
-        if (build.getApprovalRequest() != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("An approval request for this build already exists.");
         }
 
         ApprovalRequest approvalRequest = new ApprovalRequest();
         approvalRequest.setBuild(build);
         approvalRequest.setStatus("PENDING_TEAM_LEAD");
         approvalRequestRepository.save(approvalRequest);
-
-        // Associate the new request with the build
-        build.setApprovalRequest(approvalRequest);
-        buildRepository.save(build);
-
 
         return ResponseEntity.ok(approvalRequest);
     }

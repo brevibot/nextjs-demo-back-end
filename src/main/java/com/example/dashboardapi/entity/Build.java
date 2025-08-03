@@ -2,6 +2,7 @@
 
 package com.example.dashboardapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,7 +26,7 @@ public class Build {
 
     @Column(name = "build_date")
     private LocalDateTime date;
-    
+
     private String installLink;
     private String githubActionLink;
     private String sonatypeNexusLink;
@@ -38,6 +39,7 @@ public class Build {
     private List<Change> changes = new ArrayList<>();
 
     @OneToOne(mappedBy = "build", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private ApprovalRequest approvalRequest;
 
     public Build(int buildNumber, int major, int minor, int patch, String status, LocalDateTime date, String branch, boolean isRelease) {

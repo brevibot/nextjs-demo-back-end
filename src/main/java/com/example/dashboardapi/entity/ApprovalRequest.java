@@ -1,5 +1,6 @@
 package com.example.dashboardapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ public class ApprovalRequest {
 
     @OneToOne
     @JoinColumn(name = "build_id")
+    @JsonBackReference
     private Build build;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "approvalRequest")
