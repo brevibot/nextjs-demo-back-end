@@ -41,3 +41,6 @@ spring:
               metadata-uri: "classpath:metadata/metadata-idp.xml"
 server:
   port: 8080
+  servlet:
+    session:
+      timeout: 30m
