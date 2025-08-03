@@ -4,12 +4,14 @@ package com.example.dashboardapi.controller;
 
 import com.example.dashboardapi.entity.*;
 import com.example.dashboardapi.repository.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/approvals")
@@ -37,10 +39,20 @@ public class ApprovalController {
             return ResponseEntity.notFound().build();
         }
 
+        // Check if an ApprovalRequest already exists for this build
+        if (build.getApprovalRequest() != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("An approval request for this build already exists.");
+        }
+
         ApprovalRequest approvalRequest = new ApprovalRequest();
         approvalRequest.setBuild(build);
         approvalRequest.setStatus("PENDING_TEAM_LEAD");
         approvalRequestRepository.save(approvalRequest);
+
+        // Associate the new request with the build
+        build.setApprovalRequest(approvalRequest);
+        buildRepository.save(build);
+
 
         return ResponseEntity.ok(approvalRequest);
     }
@@ -98,14 +110,14 @@ public class ApprovalController {
 
         if (managerApproval.isApproved()) {
             approvalRequest.setStatus("APPROVED");
-            
+
             // Get the associated build and set it to approved
             Build build = approvalRequest.getBuild();
             if (build != null) {
                 build.setApproved(true);
                 buildRepository.save(build);
             }
-            
+
             approvalRequestRepository.save(approvalRequest);
         }
 
