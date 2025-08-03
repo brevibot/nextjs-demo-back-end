@@ -12,9 +12,12 @@ public class WebConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
+                // The Okta domain is extracted from your metadata file
+                String oktaDomain = "https://dev-77801819.okta.com";
+
                 // This global configuration applies to all endpoints
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000")
+                        .allowedOrigins("http://localhost:3000", oktaDomain)
                         .allowedMethods("*") // Allows GET, POST, PUT, DELETE, etc.
                         .allowedHeaders("*")
                         .allowCredentials(true);

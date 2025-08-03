@@ -15,9 +15,11 @@ public class RestConfig implements RepositoryRestConfigurer {
         config.exposeIdsFor(Build.class);
         config.exposeIdsFor(Event.class);
 
+        String oktaDomain = "https://dev-77801819.okta.com";
+
         // Add CORS mapping for Spring Data REST endpoints
         cors.addMapping("/**")
-            .allowedOrigins("http://localhost:3000")
+            .allowedOrigins("http://localhost:3000", oktaDomain)
             .allowedMethods("*")
             .allowedHeaders("*")
             .allowCredentials(true);
