@@ -9,7 +9,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
 import org.springframework.security.saml2.provider.service.metadata.OpenSamlMetadataResolver;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
@@ -18,7 +19,11 @@ import org.springframework.security.saml2.provider.service.web.authentication.Sa
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -28,12 +33,27 @@ public class SecurityConfig {
 
     private final RelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
 
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
     public SecurityConfig(RelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
         this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
     }
 
-    @Value("${frontend.url}")
-    private String frontendUrl;
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        String oktaDomain = "https://dev-77801819.okta.com";
+
+        configuration.setAllowedOrigins(Arrays.asList(frontendUrl, oktaDomain));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -44,30 +64,24 @@ public class SecurityConfig {
                 new OpenSamlMetadataResolver());
 
         http
-            // .cors(cors -> cors.disable())
-            .cors(withDefaults())
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/**", "/login/saml2/sso/okta")
-            )
+            .cors(AbstractHttpConfigurer::disable)
+            // --- THIS IS THE TEMPORARY CHANGE ---
+            .csrf(AbstractHttpConfigurer::disable)
             .addFilterBefore(filter, Saml2WebSsoAuthenticationFilter.class)
             .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers(new AntPathRequestMatcher("/login/**"), new AntPathRequestMatcher("/error")).permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/login/**", "/error").permitAll()
                 .anyRequest().authenticated()
             )
-            // Update the saml2Login configuration
-            .saml2Login(saml2 -> saml2
-                .defaultSuccessUrl(frontendUrl, true)
-            )
+            .saml2Login(saml2 -> saml2.defaultSuccessUrl(frontendUrl, true))
             .saml2Logout(withDefaults())
-            .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+            .headers(headers -> headers.frameOptions(FrameOptionsConfig::disable))
             .exceptionHandling(e -> e
                 .defaultAuthenticationEntryPointFor(
                     new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
                     new AntPathRequestMatcher("/api/**")
                 )
             );
-
 
         return http.build();
     }
