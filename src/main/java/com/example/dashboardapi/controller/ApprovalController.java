@@ -192,4 +192,24 @@ public class ApprovalController {
 
         return ResponseEntity.ok(updatedRequest);
     }
+    
+    @PostMapping("/cancel/{approvalRequestId}")
+    @Transactional
+    public ResponseEntity<?> cancelApproval(@PathVariable Long approvalRequestId) {
+        ApprovalRequest approvalRequest = approvalRequestRepository.findById(approvalRequestId).orElse(null);
+        if (approvalRequest == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String currentStatus = approvalRequest.getStatus();
+        if ("APPROVED".equals(currentStatus) || "CANCELED".equals(currentStatus)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Request is already in a closed state."));
+        }
+
+        approvalRequest.setStatus("CANCELED");
+        approvalRequestRepository.save(approvalRequest);
+
+        return ResponseEntity.ok(approvalRequest);
+    }
 }
